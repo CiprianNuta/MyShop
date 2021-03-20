@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using MyShop.Core.Models;
+using MyShop.Core.ViewModel;
 using MyShop.DataAccess.InMemory;
 
 namespace MyShop.WebUI.Controllers
@@ -11,9 +12,11 @@ namespace MyShop.WebUI.Controllers
     public class ProductManagerController : Controller
     {
         ProductRepository context;
+        ProductCategoryRepository productCategories;
         public ProductManagerController()
         {
             context = new ProductRepository();
+            productCategories = new ProductCategoryRepository();
         }
         // GET: ProductManager
         public ActionResult Index()
@@ -25,8 +28,11 @@ namespace MyShop.WebUI.Controllers
 
         public ActionResult Create()
         {
-            Product product = new Product();
-            return View(product);
+            ProductManagerViewModel viewModel = new ProductManagerViewModel();
+
+            viewModel.Product = new Product();
+            viewModel.ProductCategories = productCategories.Collection();
+            return View(viewModel);
         }
 
         [HttpPost]
@@ -54,12 +60,16 @@ namespace MyShop.WebUI.Controllers
             }
             else
             {
-                return View(prod);
+                ProductManagerViewModel viewModel = new ProductManagerViewModel();
+                viewModel.Product = prod;
+                viewModel.ProductCategories = productCategories.Collection();
+
+                return View(viewModel);
             }
         }
 
         [HttpPost]
-        public ActionResult Edit(Product prod, string Id)
+        public ActionResult Edit(ProductManagerViewModel prod, string Id)
         {
             Product prodToEdit = context.Find(Id);
             if (prod == null)
@@ -71,11 +81,11 @@ namespace MyShop.WebUI.Controllers
                 if (!ModelState.IsValid)
                     return View(prod);
 
-                prodToEdit.Category = prod.Category;
-                prodToEdit.Description = prod.Description;
-                prodToEdit.Image = prod.Image;
-                prodToEdit.Name = prod.Name;
-                prodToEdit.Price = prod.Price;
+                prodToEdit.Category = prod.Product.Category;
+                prodToEdit.Description = prod.Product.Description;
+                prodToEdit.Image = prod.Product.Image;
+                prodToEdit.Name = prod.Product.Name;
+                prodToEdit.Price = prod.Product.Price;
 
                 context.Commit();
 
